@@ -89,7 +89,7 @@ class InverterBatteryDischargingSwitch(InverterEntity, SwitchEntity):
     entity_description = SwitchEntityDescription(
         key="enable_discharge",
         icon=Icon.BATTERY_MINUS,
-        name="Battery Discharing",
+        name="Battery Discharging",
     )
 
     def __init__(
