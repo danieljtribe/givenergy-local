@@ -22,7 +22,16 @@ async def async_setup_entry(
 ) -> None:
     """Add switches for passed config_entry in HA."""
     coordinator: GivEnergyUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities([InverterACChargingSwitch(coordinator, config_entry)])
+    async_add_entities(
+        [
+            InverterACChargingSwitch(
+                coordinator, config_entry
+            ),
+            InverterBatteryDischargingSwitch(
+                coordinator, config_entry
+            ),
+        ]
+    )
 
 
 class InverterACChargingSwitch(InverterEntity, SwitchEntity):
@@ -72,4 +81,53 @@ class InverterACChargingSwitch(InverterEntity, SwitchEntity):
             self.hass,
             self.coordinator,
             disable_ac_charge,
+        )
+
+class InverterBatteryDischargingSwitch(InverterEntity, SwitchEntity):
+    """Controls Battery discharging."""
+
+    entity_description = SwitchEntityDescription(
+        key="enable_discharge",
+        icon=Icon.BATTERY_NEGATIVE,
+        name="Battery Discharing",
+    )
+
+    def __init__(
+        self,
+        coordinator: GivEnergyUpdateCoordinator,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the switch."""
+        super().__init__(coordinator, config_entry)
+        self._attr_unique_id = (
+            f"{self.data.inverter_serial_number}_{self.entity_description.key}"
+        )
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the switch is on."""
+        return self.data.enable_charge  # type: ignore
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable Discharging."""
+
+        def enable_discharge(client: GivEnergyClient) -> None:
+            client.enable_discharge()
+
+        await async_reliable_call(
+            self.hass,
+            self.coordinator,
+            enable_discharge,
+        )
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable discharging."""
+
+        def disable_discharge(client: GivEnergyClient) -> None:
+            client.disable_discharge()
+
+        await async_reliable_call(
+            self.hass,
+            self.coordinator,
+            disable_discharge,
         )
