@@ -106,7 +106,7 @@ class InverterBatteryDischargingSwitch(InverterEntity, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the switch is on."""
-        return self.data.enable_charge  # type: ignore
+        return self.data.enable_discharge  # type: ignore
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable Discharging."""
